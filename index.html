@@ -115,8 +115,8 @@ button:disabled { opacity: 0.35; cursor: not-allowed; }
 .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 .dot.voted { background: var(--green); }
 .dot.pending { background: var(--border2); }
-.admin-gate { background: var(--bg2); border-radius: var(--radius); padding: 1rem; }
-.admin-gate p { font-size: 13px; color: var(--text2); margin-bottom: 8px; }
+.admin-badge { font-size: 10px; font-weight: 500; background: #534AB7; color: #EEEDFE; padding: 2px 7px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; letter-spacing: 0.2px; }
+
 .voters-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .voter-chip { font-size: 12px; padding: 3px 8px; background: var(--green-light); color: var(--green-text); border-radius: var(--radius); }
 .empty { text-align: center; padding: 2rem; color: var(--text2); font-size: 14px; }
@@ -177,7 +177,7 @@ async function binSet(data) {
   if (!r.ok) throw new Error('HTTP ' + r.status);
 }
 
-/* Default initial data — members are objects: { email, passwordHash } */
+/* Default initial data — members: { email, passwordHash, isAdmin } */
 const INIT = {
   members: [],
   priorities: [
@@ -265,6 +265,57 @@ function ConfirmModal({ email, onConfirm, onClose }) {
   );
 }
 
+/* Change-own-password modal */
+function ChangePwModal({ onSave, onClose }) {
+  const [cur, setCur]   = useState('');
+  const [pw, setPw]     = useState('');
+  const [pw2, setPw2]   = useState('');
+  const [err, setErr]   = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const submit = async () => {
+    setErr('');
+    if (!cur)           { setErr('Please enter your current password.'); return; }
+    if (pw.length < 4)  { setErr('New password must be at least 4 characters.'); return; }
+    if (pw !== pw2)     { setErr('New passwords do not match.'); return; }
+    if (cur === pw)     { setErr('New password must be different from current password.'); return; }
+    setBusy(true);
+    const curHash = await sha256(cur);
+    const newHash = await sha256(pw);
+    const result  = await onSave(curHash, newHash);
+    if (result === 'wrong_current') setErr('Current password is incorrect.');
+    setBusy(false);
+  };
+
+  return h('div', { className:'overlay', onClick: e => e.target === e.currentTarget && onClose() },
+    h('div', { className:'modal' },
+      h('h3', null, 'Change password'),
+      h('p', { className:'sub' }, 'Enter your current password to confirm, then choose a new one.'),
+      h('div', { className:'field' },
+        h('label', null, 'Current password'),
+        h(PwField, { value:cur, onChange: e => { setCur(e.target.value); setErr(''); }, placeholder:'Current password', autoFocus:true })
+      ),
+      h('div', { className:'field' },
+        h('label', null, 'New password'),
+        h(PwField, { value:pw, onChange: e => { setPw(e.target.value); setErr(''); }, placeholder:'New password' })
+      ),
+      h('div', { className:'field' },
+        h('label', null, 'Confirm new password'),
+        h(PwField, { value:pw2, onChange: e => { setPw2(e.target.value); setErr(''); }, placeholder:'Confirm new password',
+          onKeyDown: e => e.key === 'Enter' && submit() })
+      ),
+      err && h('div', { className:'error' }, err),
+      h('div', { className:'modal-actions' },
+        h('button', { onClick: onClose }, 'Cancel'),
+        h('button', { className:'primary', onClick: submit, disabled: busy },
+          busy ? h('span', { className:'spinner' }) : null,
+          busy ? ' Saving…' : 'Update password'
+        )
+      )
+    )
+  );
+}
+
 /* First-run: create the very first admin account */
 function FirstRun({ onDone }) {
   const [email, setEmail] = useState('');
@@ -342,10 +393,8 @@ function App() {
   const [ranking, setRanking]   = useState([]);
   const [savedMsg, setSavedMsg] = useState('');
 
-  const [pin, setPin]           = useState('');
-  const [admin, setAdmin]       = useState(false);
-
   const [confirmRemove, setConfirmRemove] = useState(null);
+  const [showChangePw, setShowChangePw]   = useState(false);
 
   const [newEmail, setNewEmail] = useState('');
   const [newPw, setNewPw]       = useState('');
@@ -368,7 +417,11 @@ function App() {
       let d = await binGet();
       /* migrate old plain-string member arrays */
       if (d.members?.length && typeof d.members[0] === 'string') {
-        d = { ...d, members: d.members.map(em => ({ email: em, passwordHash: null })) };
+        d = { ...d, members: d.members.map((em, i) => ({ email: em, passwordHash: null, isAdmin: i === 0 })) };
+      }
+      /* ensure isAdmin field exists on all members */
+      if (d.members?.length && d.members[0].isAdmin === undefined) {
+        d = { ...d, members: d.members.map((m, i) => ({ ...m, isAdmin: i === 0 })) };
       }
       if (!d.priorities) d.priorities = INIT.priorities;
       if (!d.votes)      d.votes      = {};
@@ -464,7 +517,7 @@ function App() {
     if (newPw !== newPw2) { setMemErr('Passwords do not match.'); return; }
     if ((data.members||[]).find(m => m.email.toLowerCase() === em)) { setMemErr('This email is already registered.'); return; }
     const hash = await sha256(newPw);
-    await persist({ ...data, members: [...data.members, { email: em, passwordHash: hash }] });
+    await persist({ ...data, members: [...data.members, { email: em, passwordHash: hash, isAdmin: false }] });
     setNewEmail(''); setNewPw(''); setNewPw2('');
     setMemOk(em + ' added successfully.');
     setTimeout(() => setMemOk(''), 3000);
@@ -479,10 +532,33 @@ function App() {
     setConfirmRemove(null);
   };
 
-  /* Reset password */
+  /* Toggle admin role */
+  const toggleAdmin = async (email) => {
+    const member = data.members.find(m => m.email === email);
+    if (!member) return;
+    const adminCount = data.members.filter(m => m.isAdmin).length;
+    if (member.isAdmin && adminCount <= 1) {
+      alert('Cannot remove the last admin. Promote another member first.');
+      return;
+    }
+    await persist({ ...data, members: data.members.map(m => m.email === email ? { ...m, isAdmin: !m.isAdmin } : m) });
+  };
+
+  /* Reset password (admin) */
   const doResetPw = async (newHash) => {
     await persist({ ...data, members: data.members.map(m => m.email === resetTarget ? { ...m, passwordHash: newHash } : m) });
     setResetTarget(null);
+  };
+
+  /* Change own password */
+  const doChangePw = async (curHash, newHash) => {
+    const member = data.members.find(m => m.email === user);
+    if (!member || member.passwordHash !== curHash) {
+      return 'wrong_current';
+    }
+    await persist({ ...data, members: data.members.map(m => m.email === user ? { ...m, passwordHash: newHash } : m) });
+    setShowChangePw(false);
+    return 'ok';
   };
 
   /* Add priority */
@@ -517,7 +593,7 @@ function App() {
   };
 
   /* Sign out */
-  const signOut = () => { setUser(null); setEmailIn(''); setPwIn(''); setAdmin(false); setPin(''); setTab('vote'); };
+  const signOut = () => { setUser(null); setEmailIn(''); setPwIn(''); setTab('vote'); };
 
   /* ── Loading ── */
   if (loading || !data) return h('div', { style:{padding:'3rem',textAlign:'center',color:'var(--text2)',fontSize:'14px'} },
@@ -526,7 +602,7 @@ function App() {
 
   /* ── First-run setup: no members exist yet ── */
   if (data.members.length === 0) return h(FirstRun, { onDone: async (email, hash) => {
-    await persist({ ...data, members: [{ email, passwordHash: hash }] });
+    await persist({ ...data, members: [{ email, passwordHash: hash, isAdmin: true }] });
     setUser(email);
   }});
 
@@ -567,15 +643,23 @@ function App() {
     )
   );
 
-  const res       = getResults();
-  const maxScore  = res[0]?.score || 1;
-  const voterCount = Object.keys(data.votes).length;
+  const res            = getResults();
+  const maxScore       = res[0]?.score || 1;
+  const voterCount     = Object.keys(data.votes).length;
+  const isCurrentUserAdmin = !!(user && data.members.find(m => m.email === user)?.isAdmin);
+  const adminCount     = data.members.filter(m => m.isAdmin).length;
+
+  /* Silently redirect non-admins away from restricted tabs */
+  if (!isCurrentUserAdmin && (tab === 'results' || tab === 'manage')) {
+    setTimeout(() => setTab('vote'), 0);
+  }
 
   return h('div', null,
 
     /* Modals */
-    resetTarget   && h(ResetModal,   { email: resetTarget,   onSave: doResetPw,     onClose: () => setResetTarget(null) }),
+    resetTarget   && h(ResetModal,   { email: resetTarget,   onSave: doResetPw,       onClose: () => setResetTarget(null) }),
     confirmRemove && h(ConfirmModal, { email: confirmRemove, onConfirm: doRemoveMember, onClose: () => setConfirmRemove(null) }),
+    showChangePw  && h(ChangePwModal, { onSave: doChangePw,  onClose: () => setShowChangePw(false) }),
 
     /* Top banner */
     h('div', { className:'topbanner' },
@@ -591,7 +675,9 @@ function App() {
           saving
             ? h('span', { className:'topbanner-status', style:{display:'flex',alignItems:'center',gap:'5px'} }, h('span', { className:'spinner dk' }), 'Saving…')
             : h('span', { className:'topbanner-status' }, voterCount+'/'+data.members.length+' voted'),
+          isCurrentUserAdmin && h('span', { className:'admin-badge' }, 'admin'),
           h('span', { className:'topbanner-email', title: user }, user),
+          h('button', { className:'sm', onClick: () => setShowChangePw(true), title:'Change your password' }, '🔑'),
           h('button', { className:'sm', onClick:signOut }, 'Sign out')
         )
       )
@@ -600,7 +686,7 @@ function App() {
     h('div', { className:'app' },
 
     h('div', { className:'tabs' },
-      ['vote','results','manage'].map(t =>
+      (isCurrentUserAdmin ? ['vote','results','manage'] : ['vote']).map(t =>
         h('div', { key:t, className:'tab'+(tab===t?' active':''), onClick:()=>setTab(t) },
           {vote:'My ranking',results:'Results',manage:'Manage'}[t]
         )
@@ -679,19 +765,8 @@ function App() {
       )
     ),
 
-    /* ── MANAGE ── */
-    tab==='manage' && h('div', null,
-      !admin
-        ? h('div', { className:'admin-gate' },
-            h('p', null, 'Enter the admin PIN to manage members and priorities.'),
-            h('div', { className:'row' },
-              h('input', { type:'password', placeholder:'Admin PIN', value:pin,
-                onChange: e=>setPin(e.target.value),
-                onKeyDown: e=>e.key==='Enter'&&(pin===ADMIN_PIN?setAdmin(true):alert('Incorrect PIN')) }),
-              h('button', { className:'primary', onClick:()=>pin===ADMIN_PIN?setAdmin(true):alert('Incorrect PIN') }, 'Unlock')
-            )
-          )
-        : h('div', null,
+    /* ── MANAGE (admin only) ── */
+    tab==='manage' && isCurrentUserAdmin && h('div', null,
 
             /* ── Priority list ── */
             h('p', { className:'section-label' }, 'Priority items'),
@@ -741,16 +816,23 @@ function App() {
               : data.members.map(m => h('div', { key:m.email, className:'list-item' },
                   h('div', { className:'dot '+(data.votes[m.email]?'voted':'pending'), title:data.votes[m.email]?'Voted':'Not voted yet' }),
                   h('div', { className:'info' },
-                    h('div', { className:'em' }, m.email),
+                    h('div', { className:'em', style:{display:'flex',alignItems:'center',gap:'6px',flexWrap:'wrap'} },
+                      m.email,
+                      m.isAdmin && h('span', { className:'admin-badge sm' }, 'admin')
+                    ),
                     h('div', { className:'sub' }, m.passwordHash ? 'Password set' : 'No password — cannot log in')
                   ),
                   h('div', { className:'actions' },
+                    h('button', { className:'sm', title: m.isAdmin ? 'Remove admin role' : 'Make admin',
+                      onClick: () => toggleAdmin(m.email),
+                      disabled: saving || (m.isAdmin && adminCount <= 1),
+                      title: m.isAdmin && adminCount <= 1 ? 'Last admin — cannot demote' : (m.isAdmin ? 'Remove admin' : 'Make admin')
+                    }, m.isAdmin ? 'Remove admin' : 'Make admin'),
                     h('button', { className:'sm', title:'Reset password', onClick:()=>setResetTarget(m.email) }, 'Reset pw'),
-                    h('button', { className:'danger sm', onClick:()=>removeMember(m.email) }, 'Remove')
+                    h('button', { className:'danger sm', onClick:()=>removeMember(m.email), disabled: m.email === user }, 'Remove')
                   )
                 )),
-            h('p', { className:'hint' }, 'Green dot = voted · Grey = not yet · Reset pw = change password')
-        )
+            h('p', { className:'hint' }, 'Green dot = voted · Grey = not yet · You cannot remove your own account')
     )
   )); /* close .app div + outer div */
 }
