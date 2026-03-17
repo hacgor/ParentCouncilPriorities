@@ -117,18 +117,18 @@
 const { useState, useEffect, useRef, useCallback } = React;
 const e = React.createElement;
 
-const ADMIN_PIN = '123654789';
+const ADMIN_PIN = '1234';
 const LS_CONFIG = 'pc_jsonbin_config';
 const isEmail = s => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.trim().toLowerCase());
 
 const DEFAULT_DATA = {
-  members: ['hacgor@yahoo.com','olga.dervendji@gmail.com','tomo.dervendji@gmail.com','aldina.ezel.28.12@gmail.com','violetaspaseska@gmail.com','veronika.kiroska@yahoo.com','denizsulejman@gmail.com','irenadimitrovski@yahoo.com','margaritabak@gmail.com','lolapinkitas@gmail.com','gocebog@gmail.com','milajovanovska@outlook.com','dpesevska@gmail.com','amanitok15@gmail.com','jov_tanja@hotmail.com','silvana.spasovska@gmail.com','iliyana.a@yahoo.com','tacci_cvet@yahoo.com','azmanoski27@gmail.com','tamara.suharova@gmail.com','koceva.j@gmail.com','sonjamitrinovska@hotmail.com','maja_urumovska@hotmail.com','eli.atanasova@gmail.com','mirjanamilosevska@bro.gov.mk','hvnadica@gmail.com','irena.milanovska@yahoo.com','majar737@yahoo.com','katevlatce@gmail.com','b.stangolevaa@yahoo.com','magde20@gmail.com','dalibor.bogdanovski@gmail.com','a.aleksoska@gmail.com','marijasotirovska@yahoo.com','sanjagrujevska@gmail.com','biba-sk@hotmail.com','seizova@gmail.com','losaa1977@gmail.com','nevena.krstevska@gmail.com','snezana.jp@progenz.biz','biseramomirovska@gmail.com','a.stoleva@yahoo.com','kkotlareska@gmail.com','marko_serafimovski@hotmail.com'],
+  members: ['ana.petrovic@school.mk'],
   priorities: [
-    { id: 'p1', text: 'Решвање на проблем со канализација' },
-    { id: 'p2', text: 'Реконструкција на тоалети' },
-    { id: 'p3', text: 'Сервисирање и одржување на клими и прочистувачи' },
-    { id: 'p4', text: 'Компјутери во сите училници' },
-    { id: 'p5', text: 'Набавка на машини за чистење' },
+    { id: 'p1', text: 'School safety and security improvements' },
+    { id: 'p2', text: 'Extracurricular activities and sports programs' },
+    { id: 'p3', text: 'Classroom technology and digital learning' },
+    { id: 'p4', text: 'School nutrition and healthy food options' },
+    { id: 'p5', text: 'Anti-bullying and mental health support' },
   ],
   votes: {}
 };
@@ -224,6 +224,10 @@ function Setup({ onDone }) {
     )
   );
 }
+
+
+const JSONBIN_API_KEY = '$2a$10$8.Wd3M9BYnq3st9jE3ZcoeFnKgz5cDpj6vvZAsV6FYcBZLfk2Q1cS';
+const JSONBIN_BIN_ID  = '69b904c7c3097a1dd5313afe';
 
 /* ── Main app ── */
 function Main({ apiKey, binId, onReset }) {
@@ -498,11 +502,8 @@ function Main({ apiKey, binId, onReset }) {
 }
 
 function Root() {
-  const [cfg, setCfg] = useState(() => {
-    try { const s = localStorage.getItem(LS_CONFIG); return s ? JSON.parse(s) : null; } catch(_) { return null; }
-  });
-  if (!cfg) return e(Setup, { onDone: setCfg });
-  return e(Main, { ...cfg, onReset: () => { localStorage.removeItem(LS_CONFIG); setCfg(null); } });
+  const cfg = { apiKey: JSONBIN_API_KEY, binId: JSONBIN_BIN_ID };
+  return e(Main, { ...cfg, onReset: () => {} });
 }
 
 ReactDOM.render(e(Root), document.getElementById('root'));
