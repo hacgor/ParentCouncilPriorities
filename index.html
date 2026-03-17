@@ -5,108 +5,125 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Parent Council — Priority Voting Board</title>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f3; min-height: 100vh; display: flex; justify-content: center; padding: 2rem 1rem; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0ede8; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 0 0 3rem; }
+:root {
+  --bg: #ffffff; --bg2: #f1efe8; --bg-danger: #fcebeb;
+  --text: #1a1a18; --text2: #5f5e5a; --text3: #888780;
+  --text-danger: #a32d2d;
+  --border: rgba(0,0,0,0.12); --border2: rgba(0,0,0,0.25);
+  --border-danger: #f09595;
+  --radius: 8px; --radius-lg: 12px;
+  --green: #1D9E75; --green-dark: #0F6E56; --green-light: #E1F5EE; --green-text: #0F6E56;
+  --amber: #BA7517; --amber-dark: #854F0B;
+}
+@media (prefers-color-scheme: dark) {
+  body { background: #141412; }
   :root {
-    --bg: #ffffff; --bg2: #f1efe8; --bg-danger: #fcebeb; --bg-info: #e6f1fb;
-    --text: #1a1a18; --text2: #5f5e5a; --text3: #888780;
-    --text-danger: #a32d2d;
-    --border: rgba(0,0,0,0.15); --border2: rgba(0,0,0,0.28);
-    --border-danger: #f09595;
-    --radius: 8px; --radius-lg: 12px;
-    --green: #1D9E75; --green-dark: #0F6E56; --green-light: #E1F5EE; --green-text: #0F6E56;
-    --amber: #BA7517; --amber-dark: #854F0B;
+    --bg: #2c2c2a; --bg2: #232321; --bg-danger: #501313;
+    --text: #f1efe8; --text2: #b4b2a9; --text3: #888780;
+    --text-danger: #f09595;
+    --border: rgba(255,255,255,0.12); --border2: rgba(255,255,255,0.25);
+    --border-danger: #791f1f;
+    --green-light: #04342C; --green-text: #5DCAA5;
   }
-  @media (prefers-color-scheme: dark) {
-    body { background: #1a1a18; }
-    :root {
-      --bg: #2c2c2a; --bg2: #232321; --bg-danger: #501313;
-      --text: #f1efe8; --text2: #b4b2a9; --text3: #888780;
-      --text-danger: #f09595;
-      --border: rgba(255,255,255,0.15); --border2: rgba(255,255,255,0.28);
-      --border-danger: #791f1f;
-      --green-light: #04342C; --green-text: #5DCAA5;
-    }
-  }
-  .app { width: 100%; max-width: 640px; }
-  .header { text-align: center; margin-bottom: 1.5rem; }
-  .header h1 { font-size: 22px; font-weight: 500; color: var(--text); letter-spacing: -0.3px; }
-  .header p { font-size: 13px; color: var(--text2); margin-top: 4px; }
-  .card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; }
-  .card h2 { font-size: 16px; font-weight: 500; margin-bottom: 6px; color: var(--text); }
-  .card .desc { font-size: 13px; color: var(--text2); margin-bottom: 1.25rem; line-height: 1.6; }
-  label { font-size: 11px; font-weight: 500; color: var(--text2); display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.4px; }
-  .field { margin-bottom: 1rem; }
-  input[type=text], input[type=email], input[type=password] {
-    width: 100%; padding: 9px 12px; border: 0.5px solid var(--border2);
-    border-radius: var(--radius); font-size: 14px; background: var(--bg); color: var(--text); font-family: inherit;
-  }
-  input:focus { outline: none; border-color: var(--green); }
-  .row { display: flex; gap: 8px; }
-  .row input { flex: 1; width: auto; }
-  button { padding: 9px 18px; border: 0.5px solid var(--border2); border-radius: var(--radius); font-size: 13px; cursor: pointer; background: var(--bg); color: var(--text); transition: background 0.15s; font-family: inherit; white-space: nowrap; }
-  button:hover { background: var(--bg2); }
-  button.primary { background: var(--green); color: #fff; border-color: var(--green); font-weight: 500; }
-  button.primary:hover { background: var(--green-dark); border-color: var(--green-dark); }
-  button.danger { background: var(--bg-danger); color: var(--text-danger); border-color: var(--border-danger); }
-  button.export-btn { background: var(--amber); color: #fff; border-color: var(--amber); font-weight: 500; }
-  button.export-btn:hover { background: var(--amber-dark); }
-  button.sm { padding: 4px 10px; font-size: 12px; }
-  button:disabled { opacity: 0.35; cursor: not-allowed; }
-  .tabs { display: flex; border-bottom: 0.5px solid var(--border); margin-bottom: 1.25rem; }
-  .tab { padding: 9px 18px; font-size: 13px; color: var(--text2); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -0.5px; transition: color 0.15s; }
-  .tab.active { color: var(--green); border-bottom-color: var(--green); font-weight: 500; }
-  .tab:hover:not(.active) { color: var(--text); }
-  .member-bar { display: flex; align-items: center; justify-content: space-between; background: var(--bg2); border-radius: var(--radius); padding: 8px 12px; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px; }
-  .email-tag { font-size: 12px; font-weight: 500; color: var(--green-text); background: var(--green-light); padding: 3px 10px; border-radius: var(--radius); }
-  .drag-item { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 10px 12px; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; cursor: grab; user-select: none; transition: border-color 0.12s; }
-  .drag-item:active { cursor: grabbing; }
-  .drag-item.over { border-color: var(--green); background: var(--green-light); }
-  .rank-badge { min-width: 26px; height: 26px; border-radius: 50%; background: var(--green-light); color: var(--green-text); font-size: 12px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .rank-1 { background: #FAEEDA; color: #854F0B; }
-  .rank-2 { background: #D3D1C7; color: #444441; }
-  .rank-3 { background: #FAECE7; color: #993C1D; }
-  .item-text { flex: 1; font-size: 14px; color: var(--text); }
-  .drag-handle { color: var(--text3); font-size: 16px; flex-shrink: 0; }
-  .move-btns { display: flex; flex-direction: column; gap: 2px; }
-  .move-btn { padding: 2px 6px; font-size: 11px; border: 0.5px solid var(--border); border-radius: 4px; cursor: pointer; background: var(--bg2); color: var(--text2); line-height: 1.4; }
-  .move-btn:hover { background: var(--bg); }
-  .save-bar { display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; padding-top: 1rem; border-top: 0.5px solid var(--border); }
-  .saved-msg { font-size: 12px; color: var(--green); font-weight: 500; }
-  .result-item { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
-  .score-wrap { flex: 1; }
-  .score-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; color: var(--text); }
-  .score-label span:last-child { color: var(--text2); font-size: 12px; }
-  .bar-bg { height: 4px; background: var(--bg2); border-radius: 2px; overflow: hidden; }
-  .bar-fill { height: 4px; background: var(--green); border-radius: 2px; }
-  .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px; }
-  .chip { font-size: 12px; color: var(--text2); background: var(--bg2); padding: 4px 10px; border-radius: var(--radius); }
-  .section-label { font-size: 11px; font-weight: 500; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; margin-top: 1.25rem; }
-  .section-label:first-child { margin-top: 0; }
-  .list-item { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); margin-bottom: 6px; }
-  .list-item span { flex: 1; font-size: 13px; color: var(--text); word-break: break-all; }
-  .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-  .dot.voted { background: var(--green); }
-  .dot.pending { background: var(--border2); }
-  .admin-gate { background: var(--bg2); border-radius: var(--radius); padding: 1rem; }
-  .admin-gate p { font-size: 13px; color: var(--text2); margin-bottom: 8px; }
-  .voters-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-  .voter-chip { font-size: 12px; padding: 3px 8px; background: var(--green-light); color: var(--green-text); border-radius: var(--radius); }
-  .empty { text-align: center; padding: 2rem; color: var(--text2); font-size: 14px; }
-  .error { font-size: 13px; color: var(--text-danger); background: var(--bg-danger); border: 0.5px solid var(--border-danger); border-radius: var(--radius); padding: 8px 12px; margin-top: 8px; }
-  .hint { font-size: 12px; color: var(--text3); margin-top: 6px; }
-  .divider { border: none; border-top: 0.5px solid var(--border); margin: 1.25rem 0; }
-  .spinner { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 5px; }
-  .spinner.dk { border-color: rgba(0,0,0,0.12); border-top-color: var(--text2); }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .setup-step { display: flex; gap: 10px; margin-bottom: 1rem; }
-  .step-num { min-width: 22px; height: 22px; border-radius: 50%; background: var(--green-light); color: var(--green-text); font-size: 12px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
-  .step-body { flex: 1; font-size: 13px; color: var(--text2); line-height: 1.65; }
-  .step-body a { color: var(--green); }
-  .step-body strong { color: var(--text); font-weight: 500; }
-  .json-block { display: block; margin-top: 6px; padding: 8px 10px; font-family: monospace; font-size: 11px; background: var(--bg2); border-radius: var(--radius); word-break: break-all; line-height: 1.5; color: var(--text); border: 0.5px solid var(--border); }
-  .reset-link { font-size: 12px; color: var(--text3); text-align: center; margin-top: 1.5rem; cursor: pointer; }
-  .reset-link:hover { color: var(--text2); }
+}
+/* ── Top banner ── */
+.topbanner { width: 100%; background: var(--bg); border-bottom: 0.5px solid var(--border); margin-bottom: 1.5rem; }
+.topbanner-inner { max-width: 640px; margin: 0 auto; padding: 0 1rem; display: flex; align-items: center; justify-content: space-between; height: 56px; gap: 12px; }
+.topbanner-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.topbanner-icon { width: 32px; height: 32px; background: var(--green); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.topbanner-icon svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.topbanner-title { font-size: 15px; font-weight: 500; color: var(--text); letter-spacing: -0.2px; }
+.topbanner-sub { font-size: 11px; color: var(--text3); margin-top: 1px; letter-spacing: 0.1px; }
+.topbanner-user { display: flex; align-items: center; gap: 8px; }
+.topbanner-email { font-size: 12px; color: var(--green-text); background: var(--green-light); padding: 4px 10px; border-radius: 20px; font-weight: 500; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topbanner-status { font-size: 12px; color: var(--text3); }
+/* ── App wrapper ── */
+.app { width: 100%; max-width: 640px; padding: 0 1rem; }
+/* Auth card (login / first-run) */
+.auth-wrap { width: 100%; max-width: 400px; margin: 2rem auto 0; padding: 0 1rem; }
+.auth-logo { display: flex; flex-direction: column; align-items: center; margin-bottom: 1.5rem; }
+.auth-logo-icon { width: 48px; height: 48px; background: var(--green); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+.auth-logo-icon svg { width: 26px; height: 26px; fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.auth-logo h1 { font-size: 20px; font-weight: 500; color: var(--text); letter-spacing: -0.3px; }
+.auth-logo p { font-size: 13px; color: var(--text3); margin-top: 3px; }
+.card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; }
+.card h2 { font-size: 16px; font-weight: 500; margin-bottom: 6px; color: var(--text); }
+.desc { font-size: 13px; color: var(--text2); margin-bottom: 1.25rem; line-height: 1.6; }
+label { font-size: 11px; font-weight: 500; color: var(--text2); display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.4px; }
+.field { margin-bottom: 1rem; }
+.pw-wrap { position: relative; display: flex; }
+.pw-wrap input { flex: 1; padding-right: 42px; }
+.pw-toggle { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text3); cursor: pointer; font-size: 13px; padding: 2px 4px; line-height: 1; }
+input[type=text], input[type=email], input[type=password] { width: 100%; padding: 9px 12px; border: 0.5px solid var(--border2); border-radius: var(--radius); font-size: 14px; background: var(--bg); color: var(--text); font-family: inherit; }
+input:focus { outline: none; border-color: var(--green); }
+.row { display: flex; gap: 8px; }
+.row input { flex: 1; width: auto; }
+button { padding: 9px 18px; border: 0.5px solid var(--border2); border-radius: var(--radius); font-size: 13px; cursor: pointer; background: var(--bg); color: var(--text); transition: background 0.15s; font-family: inherit; white-space: nowrap; }
+button:hover { background: var(--bg2); }
+button.primary { background: var(--green); color: #fff; border-color: var(--green); font-weight: 500; }
+button.primary:hover { background: var(--green-dark); border-color: var(--green-dark); }
+button.danger { background: var(--bg-danger); color: var(--text-danger); border-color: var(--border-danger); }
+button.amber { background: var(--amber); color: #fff; border-color: var(--amber); font-weight: 500; }
+button.amber:hover { background: var(--amber-dark); }
+button.sm { padding: 4px 10px; font-size: 12px; }
+button.full { width: 100%; display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 4px; }
+button:disabled { opacity: 0.35; cursor: not-allowed; }
+.tabs { display: flex; border-bottom: 0.5px solid var(--border); margin-bottom: 1.25rem; }
+.tab { padding: 9px 18px; font-size: 13px; color: var(--text2); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -0.5px; transition: color 0.15s; }
+.tab.active { color: var(--green); border-bottom-color: var(--green); font-weight: 500; }
+.tab:hover:not(.active) { color: var(--text); }
+.email-tag { font-size: 12px; font-weight: 500; color: var(--green-text); background: var(--green-light); padding: 3px 10px; border-radius: var(--radius); }
+.drag-item { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 10px 12px; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; cursor: grab; user-select: none; transition: border-color 0.12s; }
+.drag-item:active { cursor: grabbing; }
+.drag-item.over { border-color: var(--green); background: var(--green-light); }
+.rank-badge { min-width: 26px; height: 26px; border-radius: 50%; background: var(--green-light); color: var(--green-text); font-size: 12px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.rank-1 { background: #FAEEDA; color: #854F0B; }
+.rank-2 { background: #D3D1C7; color: #444441; }
+.rank-3 { background: #FAECE7; color: #993C1D; }
+.item-text { flex: 1; font-size: 14px; color: var(--text); }
+.drag-handle { color: var(--text3); font-size: 16px; flex-shrink: 0; }
+.move-btns { display: flex; flex-direction: column; gap: 2px; }
+.move-btn { padding: 2px 6px; font-size: 11px; border: 0.5px solid var(--border); border-radius: 4px; cursor: pointer; background: var(--bg2); color: var(--text2); line-height: 1.4; }
+.move-btn:hover { background: var(--bg); }
+.save-bar { display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; padding-top: 1rem; border-top: 0.5px solid var(--border); }
+.saved-msg { font-size: 12px; color: var(--green); font-weight: 500; }
+.result-item { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+.score-wrap { flex: 1; }
+.score-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; color: var(--text); }
+.score-label span:last-child { color: var(--text2); font-size: 12px; }
+.bar-bg { height: 4px; background: var(--bg2); border-radius: 2px; overflow: hidden; }
+.bar-fill { height: 4px; background: var(--green); border-radius: 2px; }
+.results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px; }
+.chip { font-size: 12px; color: var(--text2); background: var(--bg2); padding: 4px 10px; border-radius: var(--radius); }
+.section-label { font-size: 11px; font-weight: 500; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; margin-top: 1.25rem; }
+.section-label:first-child { margin-top: 0; }
+.list-item { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); margin-bottom: 6px; }
+.list-item .info { flex: 1; min-width: 0; }
+.list-item .info .em { font-size: 13px; color: var(--text); word-break: break-all; }
+.list-item .info .sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.list-item .actions { display: flex; gap: 5px; flex-shrink: 0; }
+.dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.dot.voted { background: var(--green); }
+.dot.pending { background: var(--border2); }
+.admin-gate { background: var(--bg2); border-radius: var(--radius); padding: 1rem; }
+.admin-gate p { font-size: 13px; color: var(--text2); margin-bottom: 8px; }
+.voters-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.voter-chip { font-size: 12px; padding: 3px 8px; background: var(--green-light); color: var(--green-text); border-radius: var(--radius); }
+.empty { text-align: center; padding: 2rem; color: var(--text2); font-size: 14px; }
+.error { font-size: 13px; color: var(--text-danger); background: var(--bg-danger); border: 0.5px solid var(--border-danger); border-radius: var(--radius); padding: 8px 12px; margin-top: 8px; }
+.ok { font-size: 13px; color: var(--green-text); background: var(--green-light); border: 0.5px solid var(--green); border-radius: var(--radius); padding: 8px 12px; margin-top: 8px; }
+.hint { font-size: 12px; color: var(--text3); margin-top: 6px; }
+.divider { border: none; border-top: 0.5px solid var(--border); margin: 1.25rem 0; }
+.spinner { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; }
+.spinner.dk { border-color: rgba(0,0,0,0.1); border-top-color: var(--text2); }
+@keyframes spin { to { transform: rotate(360deg); } }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 1rem; }
+.modal { background: var(--bg); border-radius: var(--radius-lg); padding: 1.5rem; width: 100%; max-width: 400px; border: 0.5px solid var(--border); }
+.modal h3 { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+.modal .sub { font-size: 13px; color: var(--text2); margin-bottom: 1rem; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1.25rem; }
 </style>
 </head>
 <body>
@@ -115,14 +132,46 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script>
 const { useState, useEffect, useRef, useCallback } = React;
-const e = React.createElement;
+const h = React.createElement;
+
+/* ─────────────────────────────────────────────────────
+   CONFIGURATION — replace these two values with your
+   real JSONBin Master Key and Bin ID, then re-upload
+   index.html to GitHub.
+───────────────────────────────────────────────────── */
+const JSONBIN_API_KEY = '$2a$10$8.Wd3M9BYnq3st9jE3ZcoeFnKgz5cDpj6vvZAsV6FYcBZLfk2Q1cS';
+const JSONBIN_BIN_ID  = '69b904c7c3097a1dd5313afe';
+/* ───────────────────────────────────────────────────── */
 
 const ADMIN_PIN = '1234';
-const LS_CONFIG = 'pc_jsonbin_config';
-const isEmail = s => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.trim().toLowerCase());
+const isEmail = s => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((s||'').trim().toLowerCase());
 
-const DEFAULT_DATA = {
-  members: ['ana.petrovic@school.mk'],
+/* SHA-256 via built-in Web Crypto API — no library needed */
+async function sha256(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+/* JSONBin API helpers */
+async function binGet() {
+  const r = await fetch('https://api.jsonbin.io/v3/b/' + JSONBIN_BIN_ID + '/latest', {
+    headers: { 'X-Master-Key': JSONBIN_API_KEY }
+  });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return (await r.json()).record;
+}
+async function binSet(data) {
+  const r = await fetch('https://api.jsonbin.io/v3/b/' + JSONBIN_BIN_ID, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_API_KEY },
+    body: JSON.stringify(data)
+  });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+}
+
+/* Default initial data — members are objects: { email, passwordHash } */
+const INIT = {
+  members: [],
   priorities: [
     { id: 'p1', text: 'School safety and security improvements' },
     { id: 'p2', text: 'Extracurricular activities and sports programs' },
@@ -133,217 +182,316 @@ const DEFAULT_DATA = {
   votes: {}
 };
 
-async function binGet(binId, apiKey) {
-  const r = await fetch('https://api.jsonbin.io/v3/b/' + binId + '/latest', {
-    headers: { 'X-Master-Key': apiKey }
-  });
-  if (!r.ok) throw new Error('read_failed');
-  return (await r.json()).record;
+/* Password field with show/hide toggle */
+function PwField({ value, onChange, placeholder, onKeyDown, autoFocus }) {
+  const [show, setShow] = useState(false);
+  return h('div', { className: 'pw-wrap' },
+    h('input', { type: show ? 'text' : 'password', value, onChange, placeholder: placeholder || 'Password', onKeyDown, autoFocus }),
+    h('button', { type: 'button', className: 'pw-toggle', onClick: () => setShow(v => !v), tabIndex: -1 }, show ? '🙈' : '👁')
+  );
 }
 
-async function binSet(binId, apiKey, data) {
-  const r = await fetch('https://api.jsonbin.io/v3/b/' + binId, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', 'X-Master-Key': apiKey },
-    body: JSON.stringify(data)
-  });
-  if (!r.ok) throw new Error('write_failed');
-}
-
-/* ── Setup screen ── */
-function Setup({ onDone }) {
-  const [apiKey, setApiKey] = useState('');
-  const [binId, setBinId] = useState('');
-  const [busy, setBusy] = useState(false);
+/* Reset-password modal */
+function ResetModal({ email, onSave, onClose }) {
+  const [pw, setPw]   = useState('');
+  const [pw2, setPw2] = useState('');
   const [err, setErr] = useState('');
+  const [busy, setBusy] = useState(false);
 
-  const connect = async () => {
+  const submit = async () => {
     setErr('');
-    if (!apiKey.trim() || !binId.trim()) { setErr('Both fields are required.'); return; }
+    if (pw.length < 4)  { setErr('Password must be at least 4 characters.'); return; }
+    if (pw !== pw2)     { setErr('Passwords do not match.'); return; }
     setBusy(true);
-    try {
-      await binGet(binId.trim(), apiKey.trim());
-      const cfg = { apiKey: apiKey.trim(), binId: binId.trim() };
-      localStorage.setItem(LS_CONFIG, JSON.stringify(cfg));
-      onDone(cfg);
-    } catch(_) {
-      setErr('Connection failed. Double-check your Bin ID and Secret Key and try again.');
-    }
+    await onSave(await sha256(pw));
     setBusy(false);
   };
 
-  return e('div', { className: 'app' },
-    e('div', { className: 'header' },
-      e('h1', null, 'Parent Council'),
-      e('p', null, 'Priority Voting Board')
-    ),
-    e('div', { className: 'card' },
-      e('h2', null, 'One-time setup'),
-      e('p', { className: 'desc' }, 'This app uses JSONBin.io as shared storage so all council members see the same data. Complete these steps once, then share the HTML file with your council.'),
-
-      e('div', { className: 'setup-step' },
-        e('div', { className: 'step-num' }, '1'),
-        e('div', { className: 'step-body' },
-          'Go to ', e('a', { href: 'https://jsonbin.io', target: '_blank' }, 'jsonbin.io'),
-          ' and create a free account. Then go to ', e('strong', null, 'API Keys'),
-          ' and copy your ', e('strong', null, 'Secret Key'), '.'
+  return h('div', { className: 'overlay', onClick: e => e.target === e.currentTarget && onClose() },
+    h('div', { className: 'modal' },
+      h('h3', null, 'Reset password'),
+      h('p', { className: 'sub' }, email),
+      h('div', { className: 'field' },
+        h('label', null, 'New password'),
+        h(PwField, { value: pw, onChange: e => { setPw(e.target.value); setErr(''); }, placeholder: 'New password', autoFocus: true })
+      ),
+      h('div', { className: 'field' },
+        h('label', null, 'Confirm password'),
+        h(PwField, { value: pw2, onChange: e => { setPw2(e.target.value); setErr(''); }, placeholder: 'Confirm password', onKeyDown: e => e.key === 'Enter' && submit() })
+      ),
+      err && h('div', { className: 'error' }, err),
+      h('div', { className: 'modal-actions' },
+        h('button', { onClick: onClose }, 'Cancel'),
+        h('button', { className: 'primary', onClick: submit, disabled: busy },
+          busy ? h('span', { className: 'spinner' }) : null, busy ? ' Saving…' : 'Save password'
         )
-      ),
-
-      e('div', { className: 'setup-step' },
-        e('div', { className: 'step-num' }, '2'),
-        e('div', { className: 'step-body' },
-          'Click ', e('strong', null, 'Create Bin'), ', paste the JSON below as the initial content, then click Create. Copy the ', e('strong', null, 'Bin ID'), ' that appears.',
-          e('code', { className: 'json-block' }, JSON.stringify(DEFAULT_DATA))
-        )
-      ),
-
-      e('div', { className: 'setup-step' },
-        e('div', { className: 'step-num' }, '3'),
-        e('div', { className: 'step-body' }, 'Paste both values below and click Connect.')
-      ),
-
-      e('hr', { className: 'divider' }),
-
-      e('div', { className: 'field' },
-        e('label', null, 'Secret API Key'),
-        e('input', { type: 'password', placeholder: '$2b$10$...', value: apiKey, onChange: ev => setApiKey(ev.target.value) })
-      ),
-      e('div', { className: 'field' },
-        e('label', null, 'Bin ID'),
-        e('input', { type: 'text', placeholder: '64a3f1c...', value: binId, onChange: ev => setBinId(ev.target.value), onKeyDown: ev => ev.key === 'Enter' && connect() })
-      ),
-      err && e('div', { className: 'error', style: { marginBottom: '12px' } }, err),
-      e('div', { style: { display: 'flex', justifyContent: 'flex-end' } },
-        e('button', { className: 'primary', onClick: connect, disabled: busy },
-          busy && e('span', { className: 'spinner' }),
-          busy ? 'Connecting...' : 'Connect'
-        )
-      ),
-      e('p', { className: 'hint' }, 'Your API key is stored only in this browser\'s local storage.')
+      )
     )
   );
 }
 
+/* Shared school icon SVG */
+const SchoolIcon = () => h('svg', { viewBox:'0 0 24 24', xmlns:'http://www.w3.org/2000/svg' },
+  h('path', { d:'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2' }),
+  h('circle', { cx:'9', cy:'7', r:'4' }),
+  h('path', { d:'M23 21v-2a4 4 0 0 0-3-3.87' }),
+  h('path', { d:'M16 3.13a4 4 0 0 1 0 7.75' })
+);
 
-const JSONBIN_API_KEY = '$2a$10$8.Wd3M9BYnq3st9jE3ZcoeFnKgz5cDpj6vvZAsV6FYcBZLfk2Q1cS';
-const JSONBIN_BIN_ID  = '69b904c7c3097a1dd5313afe';
+/* Confirm-removal modal */
+function ConfirmModal({ email, onConfirm, onClose }) {
+  const [busy, setBusy] = useState(false);
+  const confirm = async () => { setBusy(true); await onConfirm(); setBusy(false); };
+  return h('div', { className:'overlay', onClick: e => e.target === e.currentTarget && onClose() },
+    h('div', { className:'modal' },
+      h('h3', null, 'Remove member'),
+      h('p', { className:'sub' }, 'This will permanently remove ', h('strong', null, email), ' and delete all of their votes from the system. This cannot be undone.'),
+      h('div', { className:'modal-actions' },
+        h('button', { onClick: onClose }, 'Cancel'),
+        h('button', { className:'danger', onClick: confirm, disabled: busy },
+          busy ? h('span', { className:'spinner', style:{borderColor:'rgba(163,45,45,0.3)',borderTopColor:'var(--text-danger)'} }) : null,
+          busy ? ' Removing…' : 'Yes, remove member'
+        )
+      )
+    )
+  );
+}
 
-/* ── Main app ── */
-function Main({ apiKey, binId, onReset }) {
+/* First-run: create the very first admin account */
+function FirstRun({ onDone }) {
   const [email, setEmail] = useState('');
-  const [emailIn, setEmailIn] = useState('');
-  const [loginErr, setLoginErr] = useState('');
-  const [tab, setTab] = useState('vote');
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [ranking, setRanking] = useState([]);
-  const [savedMsg, setSavedMsg] = useState('');
-  const [pin, setPin] = useState('');
-  const [admin, setAdmin] = useState(false);
-  const [newPrio, setNewPrio] = useState('');
-  const [newMember, setNewMember] = useState('');
-  const [fErr, setFErr] = useState('');
-  const [dragIdx, setDragIdx] = useState(null);
-  const [overIdx, setOverIdx] = useState(null);
-  const dragRef = useRef(null);
+  const [pw, setPw]       = useState('');
+  const [pw2, setPw2]     = useState('');
+  const [err, setErr]     = useState('');
+  const [busy, setBusy]   = useState(false);
 
-  const load = useCallback(async () => {
-    try { const d = await binGet(binId, apiKey); setData(d); return d; }
-    catch(_) { alert('Could not load data. Check your internet connection.'); return null; }
+  const submit = async () => {
+    setErr('');
+    const em = email.trim().toLowerCase();
+    if (!isEmail(em))     { setErr('Enter a valid email address.'); return; }
+    if (!pw)              { setErr('Password is required.'); return; }
+    if (pw.length < 4)    { setErr('Password must be at least 4 characters.'); return; }
+    if (pw !== pw2)       { setErr('Passwords do not match.'); return; }
+    setBusy(true);
+    const hash = await sha256(pw);
+    await onDone(em, hash);
+    setBusy(false);
+  };
+
+  return h('div', null,
+    h('div', { className:'topbanner' },
+      h('div', { className:'topbanner-inner' },
+        h('div', { className:'topbanner-brand' },
+          h('div', { className:'topbanner-icon' }, h(SchoolIcon)),
+          h('div', null,
+            h('div', { className:'topbanner-title' }, 'Parent Council'),
+            h('div', { className:'topbanner-sub' }, 'Priority Voting Board')
+          )
+        )
+      )
+    ),
+    h('div', { className:'auth-wrap' },
+      h('div', { className:'card' },
+        h('h2', null, 'First-time setup'),
+        h('p', { className:'desc' }, 'No members exist yet. Create the first admin account to get started. You can add more members from the Manage tab afterwards.'),
+      h('div', { className:'field' },
+        h('label', null, 'Your email address'),
+        h('input', { type:'email', placeholder:'admin@example.com', value:email, autoFocus:true,
+          onChange: e => { setEmail(e.target.value); setErr(''); },
+          onKeyDown: e => e.key==='Enter' && submit() })
+      ),
+      h('div', { className:'field' },
+        h('label', null, 'Password'),
+        h(PwField, { value:pw, onChange: e => { setPw(e.target.value); setErr(''); }, placeholder:'Choose a password' })
+      ),
+      h('div', { className:'field' },
+        h('label', null, 'Confirm password'),
+        h(PwField, { value:pw2, onChange: e => { setPw2(e.target.value); setErr(''); }, placeholder:'Confirm password',
+          onKeyDown: e => e.key==='Enter' && submit() })
+      ),
+      err && h('div', { className:'error' }, err),
+      h('button', { className:'primary full', onClick:submit, disabled:busy },
+        busy ? h('span', { className:'spinner' }) : null,
+        busy ? ' Creating account…' : 'Create admin account'
+      )
+    ))
+  );
+}
+
+/* Main app */
+function App() {
+  const [user, setUser]         = useState(null);
+  const [emailIn, setEmailIn]   = useState('');
+  const [pwIn, setPwIn]         = useState('');
+  const [loginErr, setLoginErr] = useState('');
+  const [loginBusy, setLoginBusy] = useState(false);
+
+  const [tab, setTab]           = useState('vote');
+  const [data, setData]         = useState(null);
+  const [loading, setLoading]   = useState(true);
+  const [saving, setSaving]     = useState(false);
+
+  const [ranking, setRanking]   = useState([]);
+  const [savedMsg, setSavedMsg] = useState('');
+
+  const [pin, setPin]           = useState('');
+  const [admin, setAdmin]       = useState(false);
+
+  const [confirmRemove, setConfirmRemove] = useState(null);
+
+  const [newEmail, setNewEmail] = useState('');
+  const [newPw, setNewPw]       = useState('');
+  const [newPw2, setNewPw2]     = useState('');
+  const [memErr, setMemErr]     = useState('');
+  const [memOk, setMemOk]       = useState('');
+
+  const [newPrio, setNewPrio]   = useState('');
+
+  const [resetTarget, setResetTarget] = useState(null);
+
+  const [dragIdx, setDragIdx]   = useState(null);
+  const [overIdx, setOverIdx]   = useState(null);
+  const dragRef                 = useRef(null);
+
+  /* Load data */
+  const load = useCallback(async (silent) => {
+    if (!silent) setLoading(true);
+    try {
+      let d = await binGet();
+      /* migrate old plain-string member arrays */
+      if (d.members?.length && typeof d.members[0] === 'string') {
+        d = { ...d, members: d.members.map(em => ({ email: em, passwordHash: null })) };
+      }
+      if (!d.priorities) d.priorities = INIT.priorities;
+      if (!d.votes)      d.votes      = {};
+      if (!d.members)    d.members    = [];
+      setData(d);
+      return d;
+    } catch(e) { alert('Could not load data: ' + e.message); return null; }
     finally { setLoading(false); }
-  }, [binId, apiKey]);
+  }, []);
 
   useEffect(() => { load(); }, [load]);
 
+  /* Sync ranking when user or data changes */
   useEffect(() => {
-    if (!email || !data) return;
+    if (!user || !data) return;
     const ids = data.priorities.map(p => p.id);
-    const ex = data.votes[email];
+    const ex  = data.votes[user];
     if (ex) {
-      const valid = ex.filter(id => ids.includes(id));
+      const valid   = ex.filter(id => ids.includes(id));
       const missing = ids.filter(id => !valid.includes(id));
       setRanking([...valid, ...missing]);
     } else {
       setRanking(ids);
     }
-  }, [email, data]);
+  }, [user, data]);
 
+  /* Persist to JSONBin */
   const persist = async (nd) => {
     setSaving(true);
-    try { await binSet(binId, apiKey, nd); setData(nd); }
-    catch(_) { alert('Save failed. Please try again.'); }
+    try { await binSet(nd); setData(nd); }
+    catch(e) { alert('Save failed: ' + e.message); }
     setSaving(false);
   };
 
-  const login = () => {
+  /* Login */
+  const login = async () => {
     setLoginErr('');
     const em = emailIn.trim().toLowerCase();
     if (!isEmail(em)) { setLoginErr('Please enter a valid email address.'); return; }
-    if (!data.members.map(m => m.toLowerCase()).includes(em)) {
-      setLoginErr('This email is not registered. Please contact your council administrator.');
-      return;
+    if (!pwIn)        { setLoginErr('Please enter your password.'); return; }
+    setLoginBusy(true);
+    const member = (data?.members || []).find(m => m.email.toLowerCase() === em);
+    if (!member) {
+      setLoginErr('This email is not registered. Contact your administrator.');
+    } else if (!member.passwordHash) {
+      setLoginErr('No password has been set for this account. Contact your administrator.');
+    } else {
+      const hash = await sha256(pwIn);
+      if (hash === member.passwordHash) {
+        setUser(em);
+      } else {
+        setLoginErr('Incorrect password. Please try again.');
+      }
     }
-    setEmail(em);
+    setLoginBusy(false);
   };
 
+  /* Save vote */
   const saveVote = async () => {
-    const fresh = await load();
-    const base = fresh || data;
-    await persist({ ...base, votes: { ...base.votes, [email]: ranking } });
+    const fresh = await load(true);
+    const base  = fresh || data;
+    await persist({ ...base, votes: { ...base.votes, [user]: ranking } });
     setSavedMsg('Vote saved!');
     setTimeout(() => setSavedMsg(''), 2500);
   };
 
+  /* Drag & arrow ranking */
   const move = (from, to) => {
     if (to < 0 || to >= ranking.length) return;
     const r = [...ranking]; const [x] = r.splice(from, 1); r.splice(to, 0, x); setRanking(r);
   };
-
   const drop = () => {
     if (dragIdx !== null && dragRef.current !== null) move(dragIdx, dragRef.current);
     setDragIdx(null); setOverIdx(null); dragRef.current = null;
   };
 
-  const results = () => {
+  /* Results (Borda count) */
+  const getResults = () => {
     if (!data) return [];
-    const n = data.priorities.length;
-    const sc = {};
+    const n = data.priorities.length; const sc = {};
     data.priorities.forEach(p => sc[p.id] = 0);
     Object.values(data.votes).forEach(r => r.forEach((id, i) => { if (sc[id] !== undefined) sc[id] += (n - i); }));
     return data.priorities.map(p => ({ ...p, score: sc[p.id] || 0 })).sort((a,b) => b.score - a.score);
   };
 
+  /* Add member */
+  const addMember = async () => {
+    setMemErr(''); setMemOk('');
+    const em = newEmail.trim().toLowerCase();
+    if (!isEmail(em))     { setMemErr('Enter a valid email address.'); return; }
+    if (!newPw)           { setMemErr('Password is required.'); return; }
+    if (newPw.length < 4) { setMemErr('Password must be at least 4 characters.'); return; }
+    if (newPw !== newPw2) { setMemErr('Passwords do not match.'); return; }
+    if ((data.members||[]).find(m => m.email.toLowerCase() === em)) { setMemErr('This email is already registered.'); return; }
+    const hash = await sha256(newPw);
+    await persist({ ...data, members: [...data.members, { email: em, passwordHash: hash }] });
+    setNewEmail(''); setNewPw(''); setNewPw2('');
+    setMemOk(em + ' added successfully.');
+    setTimeout(() => setMemOk(''), 3000);
+  };
+
+  /* Remove member — triggers confirmation modal */
+  const removeMember = (email) => setConfirmRemove(email);
+  const doRemoveMember = async () => {
+    const email = confirmRemove;
+    const v = { ...data.votes }; delete v[email];
+    await persist({ ...data, members: data.members.filter(m => m.email !== email), votes: v });
+    setConfirmRemove(null);
+  };
+
+  /* Reset password */
+  const doResetPw = async (newHash) => {
+    await persist({ ...data, members: data.members.map(m => m.email === resetTarget ? { ...m, passwordHash: newHash } : m) });
+    setResetTarget(null);
+  };
+
+  /* Add priority */
   const addPrio = async () => {
     if (!newPrio.trim()) return;
-    const np = { id: 'p' + Date.now(), text: newPrio.trim() };
-    await persist({ ...data, priorities: [...data.priorities, np] });
+    await persist({ ...data, priorities: [...data.priorities, { id: 'p' + Date.now(), text: newPrio.trim() }] });
     setNewPrio('');
   };
 
+  /* Remove priority */
   const removePrio = async (id) => {
-    if (!confirm('Remove this priority?')) return;
     await persist({ ...data, priorities: data.priorities.filter(p => p.id !== id) });
   };
 
-  const addMem = async () => {
-    setFErr('');
-    const em = newMember.trim().toLowerCase();
-    if (!isEmail(em)) { setFErr('Enter a valid email address.'); return; }
-    if (data.members.map(m => m.toLowerCase()).includes(em)) { setFErr('Already registered.'); return; }
-    await persist({ ...data, members: [...data.members, em] });
-    setNewMember('');
-  };
-
-  const removeMem = async (em) => {
-    if (!confirm('Remove ' + em + ' from the council?')) return;
-    const v = { ...data.votes }; delete v[em];
-    await persist({ ...data, members: data.members.filter(m => m !== em), votes: v });
-  };
-
+  /* Export */
   const exportList = () => {
-    const res = results();
+    const res = getResults();
     const lines = [
       'PARENT COUNCIL — PRIORITY LIST',
       'Generated: ' + new Date().toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'}),
@@ -353,160 +501,238 @@ function Main({ apiKey, binId, onReset }) {
       ...res.map((p,i) => (i+1)+'. '+p.text+'  [score: '+p.score+']'),
       '', '------------------------------------------------',
       'Voted:', ...Object.keys(data.votes).map(v => '  • '+v),
-      '', 'Not yet voted:', ...data.members.filter(m => !data.votes[m]).map(m => '  • '+m),
+      '', 'Not yet voted:', ...data.members.filter(m => !data.votes[m.email]).map(m => '  • '+m.email),
     ];
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([lines.join('\n')], {type:'text/plain'}));
     a.download = 'parent-council-priorities.txt'; a.click();
   };
 
-  if (loading || !data) return e('div', { style:{padding:'3rem',textAlign:'center',color:'var(--text2)',fontSize:'14px'} },
-    e('span', { className: 'spinner dk' }), ' Loading...'
+  /* Sign out */
+  const signOut = () => { setUser(null); setEmailIn(''); setPwIn(''); setAdmin(false); setPin(''); setTab('vote'); };
+
+  /* ── Loading ── */
+  if (loading || !data) return h('div', { style:{padding:'3rem',textAlign:'center',color:'var(--text2)',fontSize:'14px'} },
+    h('span', { className:'spinner dk' }), ' Loading…'
   );
 
-  if (!email) return e('div', { className: 'app' },
-    e('div', { className: 'header' }, e('h1', null, 'Parent Council'), e('p', null, 'Priority Voting Board')),
-    e('div', { className: 'card' },
-      e('h2', null, 'Sign in'),
-      e('p', { className: 'desc' }, 'Enter your registered council email address.'),
-      e('div', { className: 'row' },
-        e('input', { type:'email', placeholder:'your.email@example.com', value:emailIn, onChange:ev=>{setEmailIn(ev.target.value);setLoginErr('');}, onKeyDown:ev=>ev.key==='Enter'&&login() }),
-        e('button', { className:'primary', onClick:login }, 'Enter')
-      ),
-      loginErr && e('div', { className:'error' }, loginErr),
-      e('p', { className:'hint' }, 'Only pre-registered council members may access this board.')
-    ),
-    e('p', { className:'reset-link', onClick:onReset }, 'Change connection settings')
-  );
+  /* ── First-run setup: no members exist yet ── */
+  if (data.members.length === 0) return h(FirstRun, { onDone: async (email, hash) => {
+    await persist({ ...data, members: [{ email, passwordHash: hash }] });
+    setUser(email);
+  }});
 
-  const res = results();
-  const maxScore = res[0]?.score || 1;
-  const voterCount = Object.keys(data.votes).length;
-
-  return e('div', { className: 'app' },
-    e('div', { className: 'header' }, e('h1', null, 'Parent Council'), e('p', null, 'Priority Voting Board')),
-    e('div', { className: 'member-bar' },
-      e('span', { className: 'email-tag' }, email),
-      e('div', { style:{display:'flex',alignItems:'center',gap:'8px'} },
-        e('span', { style:{fontSize:'13px',color:'var(--text2)'} }, voterCount+'/'+data.members.length+' voted'),
-        e('button', { className:'sm', onClick:()=>{setEmail('');setEmailIn('');setAdmin(false);setPin('');setTab('vote');} }, 'Sign out')
+  /* ── Login screen ── */
+  if (!user) return h('div', null,
+    h('div', { className:'topbanner' },
+      h('div', { className:'topbanner-inner' },
+        h('div', { className:'topbanner-brand' },
+          h('div', { className:'topbanner-icon' }, h(SchoolIcon)),
+          h('div', null,
+            h('div', { className:'topbanner-title' }, 'Parent Council'),
+            h('div', { className:'topbanner-sub' }, 'Priority Voting Board')
+          )
+        )
       )
     ),
-    e('div', { className: 'tabs' },
+    h('div', { className:'auth-wrap' },
+      h('div', { className:'card' },
+        h('h2', null, 'Sign in'),
+        h('p', { className:'desc' }, 'Enter your registered email and password to access the voting board.'),
+        h('div', { className:'field' },
+          h('label', null, 'Email address'),
+          h('input', { type:'email', placeholder:'your.email@example.com', value:emailIn, autoFocus:true,
+            onChange: e => { setEmailIn(e.target.value); setLoginErr(''); },
+            onKeyDown: e => e.key==='Enter' && login() })
+        ),
+        h('div', { className:'field' },
+          h('label', null, 'Password'),
+          h(PwField, { value:pwIn, onChange: e => { setPwIn(e.target.value); setLoginErr(''); }, onKeyDown: e => e.key==='Enter' && login() })
+        ),
+        loginErr && h('div', { className:'error' }, loginErr),
+        h('button', { className:'primary full', onClick:login, disabled:loginBusy },
+          loginBusy ? h('span', { className:'spinner' }) : null,
+          loginBusy ? ' Signing in…' : 'Sign in'
+        ),
+        h('p', { className:'hint', style:{textAlign:'center',marginTop:'12px'} }, 'Only registered council members may access this board.')
+      )
+    )
+  );
+
+  const res       = getResults();
+  const maxScore  = res[0]?.score || 1;
+  const voterCount = Object.keys(data.votes).length;
+
+  return h('div', null,
+
+    /* Modals */
+    resetTarget   && h(ResetModal,   { email: resetTarget,   onSave: doResetPw,     onClose: () => setResetTarget(null) }),
+    confirmRemove && h(ConfirmModal, { email: confirmRemove, onConfirm: doRemoveMember, onClose: () => setConfirmRemove(null) }),
+
+    /* Top banner */
+    h('div', { className:'topbanner' },
+      h('div', { className:'topbanner-inner' },
+        h('div', { className:'topbanner-brand' },
+          h('div', { className:'topbanner-icon' }, h(SchoolIcon)),
+          h('div', null,
+            h('div', { className:'topbanner-title' }, 'Parent Council'),
+            h('div', { className:'topbanner-sub' }, 'Priority Voting Board')
+          )
+        ),
+        h('div', { className:'topbanner-user' },
+          saving
+            ? h('span', { className:'topbanner-status', style:{display:'flex',alignItems:'center',gap:'5px'} }, h('span', { className:'spinner dk' }), 'Saving…')
+            : h('span', { className:'topbanner-status' }, voterCount+'/'+data.members.length+' voted'),
+          h('span', { className:'topbanner-email', title: user }, user),
+          h('button', { className:'sm', onClick:signOut }, 'Sign out')
+        )
+      )
+    ),
+
+    h('div', { className:'app' },
+
+    h('div', { className:'tabs' },
       ['vote','results','manage'].map(t =>
-        e('div', { key:t, className:'tab'+(tab===t?' active':''), onClick:()=>setTab(t) },
+        h('div', { key:t, className:'tab'+(tab===t?' active':''), onClick:()=>setTab(t) },
           {vote:'My ranking',results:'Results',manage:'Manage'}[t]
         )
       )
     ),
 
-    tab==='vote' && e('div', null,
-      e('p', { style:{fontSize:'13px',color:'var(--text2)',marginBottom:'1rem'} },
-        data.votes[email] ? 'Your vote is saved. You can update it anytime.' : 'Drag to reorder or use arrows. #1 is your top priority.'
+    /* ── VOTE ── */
+    tab==='vote' && h('div', null,
+      h('p', { style:{fontSize:'13px',color:'var(--text2)',marginBottom:'1rem'} },
+        data.votes[user] ? 'Your vote is saved. You can update it anytime.' : 'Drag to reorder or use arrows. #1 is your top priority.'
       ),
       ranking.map((id, idx) => {
-        const p = data.priorities.find(x => x.id === id); if (!p) return null;
-        return e('div', {
-          key: id, className: 'drag-item'+(overIdx===idx?' over':''),
-          draggable: true,
-          onDragStart: () => setDragIdx(idx),
-          onDragEnter: () => { dragRef.current = idx; setOverIdx(idx); },
-          onDragOver: ev => ev.preventDefault(),
-          onDrop: drop,
-          onDragEnd: () => { setDragIdx(null); setOverIdx(null); }
+        const p = data.priorities.find(x => x.id===id); if (!p) return null;
+        return h('div', {
+          key:id, className:'drag-item'+(overIdx===idx?' over':''),
+          draggable:true,
+          onDragStart: ()=>setDragIdx(idx),
+          onDragEnter: ()=>{ dragRef.current=idx; setOverIdx(idx); },
+          onDragOver:  e=>e.preventDefault(),
+          onDrop:      drop,
+          onDragEnd:   ()=>{ setDragIdx(null); setOverIdx(null); }
         },
-          e('div', { className:'drag-handle' }, '⠿'),
-          e('div', { className:'rank-badge'+(idx===0?' rank-1':idx===1?' rank-2':idx===2?' rank-3':'') }, idx+1),
-          e('div', { className:'item-text' }, p.text),
-          e('div', { className:'move-btns' },
-            e('button', { className:'move-btn', onClick:()=>move(idx,idx-1), disabled:idx===0 }, '▲'),
-            e('button', { className:'move-btn', onClick:()=>move(idx,idx+1), disabled:idx===ranking.length-1 }, '▼')
+          h('div', { className:'drag-handle' }, '⠿'),
+          h('div', { className:'rank-badge'+(idx===0?' rank-1':idx===1?' rank-2':idx===2?' rank-3':'') }, idx+1),
+          h('div', { className:'item-text' }, p.text),
+          h('div', { className:'move-btns' },
+            h('button', { className:'move-btn', onClick:()=>move(idx,idx-1), disabled:idx===0 }, '▲'),
+            h('button', { className:'move-btn', onClick:()=>move(idx,idx+1), disabled:idx===ranking.length-1 }, '▼')
           )
         );
       }),
-      e('div', { className:'save-bar' },
-        e('span', { className:'saved-msg' }, savedMsg),
-        e('button', { className:'primary', onClick:saveVote, disabled:saving },
-          saving && e('span', { className:'spinner' }),
-          saving ? 'Saving...' : (data.votes[email] ? 'Update my vote' : 'Save my vote')
+      h('div', { className:'save-bar' },
+        h('span', { className:'saved-msg' }, savedMsg),
+        h('button', { className:'primary', onClick:saveVote, disabled:saving },
+          saving ? h('span', { className:'spinner' }) : null,
+          saving ? ' Saving…' : (data.votes[user] ? 'Update my vote' : 'Save my vote')
         )
       )
     ),
 
-    tab==='results' && e('div', null,
-      e('div', { className:'results-header' },
-        e('span', { style:{fontSize:'14px',color:'var(--text2)'} }, 'Ranked by combined council vote'),
-        e('div', { style:{display:'flex',gap:'8px',flexWrap:'wrap',alignItems:'center'} },
-          e('span', { className:'chip' }, voterCount+'/'+data.members.length+' voted'),
-          e('button', { className:'export-btn', onClick:exportList }, 'Export list')
+    /* ── RESULTS ── */
+    tab==='results' && h('div', null,
+      h('div', { className:'results-header' },
+        h('span', { style:{fontSize:'14px',color:'var(--text2)'} }, 'Ranked by combined council vote'),
+        h('div', { style:{display:'flex',gap:'8px',flexWrap:'wrap',alignItems:'center'} },
+          h('span', { className:'chip' }, voterCount+'/'+data.members.length+' voted'),
+          h('button', { className:'amber', onClick:exportList }, 'Export list')
         )
       ),
-      res.length === 0 ? e('div', { className:'empty' }, 'No priorities yet.') :
-      res.map((p, i) => e('div', { key:p.id, className:'result-item' },
-        e('div', { className:'rank-badge'+(i===0?' rank-1':i===1?' rank-2':i===2?' rank-3':''), style:{flexShrink:0} }, i+1),
-        e('div', { className:'score-wrap' },
-          e('div', { className:'score-label' },
-            e('span', null, p.text),
-            e('span', null, p.score+' pts')
-          ),
-          voterCount > 0 && e('div', { className:'bar-bg' },
-            e('div', { className:'bar-fill', style:{width:Math.round(p.score/maxScore*100)+'%'} })
-          )
+      res.length===0 ? h('div', { className:'empty' }, 'No priorities yet.') :
+      res.map((p,i) => h('div', { key:p.id, className:'result-item' },
+        h('div', { className:'rank-badge'+(i===0?' rank-1':i===1?' rank-2':i===2?' rank-3':''), style:{flexShrink:0} }, i+1),
+        h('div', { className:'score-wrap' },
+          h('div', { className:'score-label' }, h('span', null, p.text), h('span', null, p.score+' pts')),
+          voterCount>0 && h('div', { className:'bar-bg' }, h('div', { className:'bar-fill', style:{width:Math.round(p.score/maxScore*100)+'%'} }))
         )
       )),
-      voterCount > 0 && e('div', { style:{marginTop:'1rem'} },
-        e('p', { style:{fontSize:'12px',color:'var(--text3)',marginBottom:'6px'} }, 'Voted:'),
-        e('div', { className:'voters-list' }, Object.keys(data.votes).map(v => e('span', { key:v, className:'voter-chip' }, v)))
+      voterCount>0 && h('div', { style:{marginTop:'1rem'} },
+        h('p', { style:{fontSize:'12px',color:'var(--text3)',marginBottom:'6px'} }, 'Voted:'),
+        h('div', { className:'voters-list' }, Object.keys(data.votes).map(v => h('span', { key:v, className:'voter-chip' }, v)))
       )
     ),
 
-    tab==='manage' && e('div', null,
+    /* ── MANAGE ── */
+    tab==='manage' && h('div', null,
       !admin
-        ? e('div', { className:'admin-gate' },
-            e('p', null, 'Enter the admin PIN to manage members and priorities.'),
-            e('div', { className:'row' },
-              e('input', { type:'password', placeholder:'Admin PIN', value:pin, onChange:ev=>setPin(ev.target.value), onKeyDown:ev=>ev.key==='Enter'&&(pin===ADMIN_PIN?setAdmin(true):alert('Incorrect PIN')) }),
-              e('button', { className:'primary', onClick:()=>pin===ADMIN_PIN?setAdmin(true):alert('Incorrect PIN') }, 'Unlock')
+        ? h('div', { className:'admin-gate' },
+            h('p', null, 'Enter the admin PIN to manage members and priorities.'),
+            h('div', { className:'row' },
+              h('input', { type:'password', placeholder:'Admin PIN', value:pin,
+                onChange: e=>setPin(e.target.value),
+                onKeyDown: e=>e.key==='Enter'&&(pin===ADMIN_PIN?setAdmin(true):alert('Incorrect PIN')) }),
+              h('button', { className:'primary', onClick:()=>pin===ADMIN_PIN?setAdmin(true):alert('Incorrect PIN') }, 'Unlock')
             )
           )
-        : e('div', null,
-            e('p', { className:'section-label' }, 'Council members'),
-            e('div', { className:'row', style:{marginBottom:'8px'} },
-              e('input', { type:'email', placeholder:'new.member@example.com', value:newMember, onChange:ev=>{setNewMember(ev.target.value);setFErr('');}, onKeyDown:ev=>ev.key==='Enter'&&addMem() }),
-              e('button', { className:'primary', onClick:addMem, disabled:saving }, 'Add')
+        : h('div', null,
+
+            /* ── Add member ── */
+            h('p', { className:'section-label' }, 'Add new member'),
+            h('div', { className:'field' },
+              h('label', null, 'Email address'),
+              h('input', { type:'email', placeholder:'member@example.com', value:newEmail,
+                onChange: e=>{ setNewEmail(e.target.value); setMemErr(''); setMemOk(''); } })
             ),
-            fErr && e('div', { className:'error', style:{marginBottom:'8px'} }, fErr),
-            data.members.length === 0
-              ? e('div', { className:'empty' }, 'No members registered.')
-              : data.members.map(em => e('div', { key:em, className:'list-item' },
-                  e('div', { className:'dot '+(data.votes[em]?'voted':'pending'), title:data.votes[em]?'Voted':'Not voted yet' }),
-                  e('span', null, em),
-                  e('button', { className:'danger sm', onClick:()=>removeMem(em) }, 'Remove')
+            h('div', { className:'field' },
+              h('label', null, 'Password'),
+              h(PwField, { value:newPw, onChange: e=>{ setNewPw(e.target.value); setMemErr(''); }, placeholder:'Set password' })
+            ),
+            h('div', { className:'field' },
+              h('label', null, 'Confirm password'),
+              h(PwField, { value:newPw2, onChange: e=>{ setNewPw2(e.target.value); setMemErr(''); }, placeholder:'Confirm password',
+                onKeyDown: e=>e.key==='Enter'&&addMember() })
+            ),
+            memErr && h('div', { className:'error', style:{marginBottom:'8px'} }, memErr),
+            memOk  && h('div', { className:'ok',    style:{marginBottom:'8px'} }, memOk),
+            h('button', { className:'primary', onClick:addMember, disabled:saving }, 'Add member'),
+
+            h('hr', { className:'divider' }),
+
+            /* ── Member list ── */
+            h('p', { className:'section-label' }, 'Registered members'),
+            data.members.length===0
+              ? h('div', { className:'empty' }, 'No members yet. Add the first one above.')
+              : data.members.map(m => h('div', { key:m.email, className:'list-item' },
+                  h('div', { className:'dot '+(data.votes[m.email]?'voted':'pending'), title:data.votes[m.email]?'Voted':'Not voted yet' }),
+                  h('div', { className:'info' },
+                    h('div', { className:'em' }, m.email),
+                    h('div', { className:'sub' }, m.passwordHash ? 'Password set' : 'No password — cannot log in')
+                  ),
+                  h('div', { className:'actions' },
+                    h('button', { className:'sm', title:'Reset password', onClick:()=>setResetTarget(m.email) }, 'Reset pw'),
+                    h('button', { className:'danger sm', onClick:()=>removeMember(m.email) }, 'Remove')
+                  )
                 )),
-            e('p', { className:'hint' }, 'Green dot = voted, grey = not yet.'),
-            e('hr', { className:'divider' }),
-            e('p', { className:'section-label' }, 'Priority items'),
-            e('div', { className:'row', style:{marginBottom:'8px'} },
-              e('input', { type:'text', placeholder:'Describe the new priority...', value:newPrio, onChange:ev=>setNewPrio(ev.target.value), onKeyDown:ev=>ev.key==='Enter'&&addPrio() }),
-              e('button', { className:'primary', onClick:addPrio, disabled:saving }, 'Add')
+            h('p', { className:'hint' }, 'Green dot = voted · Grey = not yet · Reset pw = change password'),
+
+            h('hr', { className:'divider' }),
+
+            /* ── Priority list ── */
+            h('p', { className:'section-label' }, 'Priority items'),
+            h('div', { className:'row', style:{marginBottom:'8px'} },
+              h('input', { type:'text', placeholder:'Describe the new priority...', value:newPrio,
+                onChange: e=>setNewPrio(e.target.value),
+                onKeyDown: e=>e.key==='Enter'&&addPrio() }),
+              h('button', { className:'primary', onClick:addPrio, disabled:saving }, 'Add')
             ),
-            data.priorities.length === 0
-              ? e('div', { className:'empty' }, 'No priorities yet.')
-              : data.priorities.map(p => e('div', { key:p.id, className:'list-item' },
-                  e('span', null, p.text),
-                  e('button', { className:'danger sm', onClick:()=>removePrio(p.id) }, 'Remove')
+            data.priorities.length===0
+              ? h('div', { className:'empty' }, 'No priorities yet.')
+              : data.priorities.map(p => h('div', { key:p.id, className:'list-item' },
+                  h('div', { className:'info' }, h('div', { className:'em' }, p.text)),
+                  h('div', { className:'actions' },
+                    h('button', { className:'danger sm', onClick:()=>removePrio(p.id) }, 'Remove')
+                  )
                 ))
           )
     )
-  );
+  )); /* close .app div + outer div */
 }
 
-function Root() {
-  const cfg = { apiKey: JSONBIN_API_KEY, binId: JSONBIN_BIN_ID };
-  return e(Main, { ...cfg, onReset: () => {} });
-}
-
-ReactDOM.render(e(Root), document.getElementById('root'));
+ReactDOM.render(h(App), document.getElementById('root'));
 </script>
 </body>
 </html>
