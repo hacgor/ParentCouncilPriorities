@@ -30,15 +30,23 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 }
 /* ── Top banner ── */
 .topbanner { width: 100%; background: var(--bg); border-bottom: 0.5px solid var(--border); margin-bottom: 1.5rem; }
-.topbanner-inner { max-width: 640px; margin: 0 auto; padding: 0 1rem; display: flex; align-items: center; justify-content: space-between; height: 56px; gap: 12px; }
-.topbanner-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-.topbanner-icon { width: 32px; height: 32px; background: var(--green); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.topbanner-icon svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.topbanner-title { font-size: 15px; font-weight: 500; color: var(--text); letter-spacing: -0.2px; }
-.topbanner-sub { font-size: 11px; color: var(--text3); margin-top: 1px; letter-spacing: 0.1px; }
-.topbanner-user { display: flex; align-items: center; gap: 8px; }
-.topbanner-email { font-size: 12px; color: var(--green-text); background: var(--green-light); padding: 4px 10px; border-radius: 20px; font-weight: 500; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.topbanner-status { font-size: 12px; color: var(--text3); }
+.topbanner-inner { max-width: 640px; margin: 0 auto; padding: 0 1rem; display: flex; align-items: center; justify-content: space-between; height: 56px; gap: 8px; min-width: 0; }
+.topbanner-brand { display: flex; align-items: center; gap: 8px; text-decoration: none; flex-shrink: 0; min-width: 0; }
+.topbanner-icon { width: 30px; height: 30px; background: var(--green); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.topbanner-icon svg { width: 16px; height: 16px; fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.topbanner-title { font-size: 14px; font-weight: 500; color: var(--text); letter-spacing: -0.2px; white-space: nowrap; }
+.topbanner-sub { font-size: 10px; color: var(--text3); margin-top: 1px; white-space: nowrap; }
+.topbanner-user { display: flex; align-items: center; gap: 6px; flex-shrink: 0; min-width: 0; }
+.topbanner-email { font-size: 11px; color: var(--green-text); background: var(--green-light); padding: 3px 8px; border-radius: 20px; font-weight: 500; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topbanner-status { font-size: 11px; color: var(--text3); white-space: nowrap; }
+@media (max-width: 400px) {
+  .topbanner-sub { display: none; }
+  .topbanner-status { display: none; }
+  .topbanner-email { max-width: 100px; }
+}
+/* ── new (unvoted) priority badge ── */
+.new-badge { font-size: 10px; font-weight: 500; background: #FAEEDA; color: #854F0B; padding: 2px 7px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
+.drag-item.is-new { border-color: #EF9F27; border-style: dashed; }
 /* ── App wrapper ── */
 .app { width: 100%; max-width: 640px; padding: 0 1rem; }
 /* Auth card (login / first-run) */
@@ -601,36 +609,51 @@ function App() {
 
     /* ── VOTE ── */
     tab==='vote' && h('div', null,
-      h('p', { style:{fontSize:'13px',color:'var(--text2)',marginBottom:'1rem'} },
-        data.votes[user] ? 'Your vote is saved. You can update it anytime.' : 'Drag to reorder or use arrows. #1 is your top priority.'
-      ),
-      ranking.map((id, idx) => {
-        const p = data.priorities.find(x => x.id===id); if (!p) return null;
-        return h('div', {
-          key:id, className:'drag-item'+(overIdx===idx?' over':''),
-          draggable:true,
-          onDragStart: ()=>setDragIdx(idx),
-          onDragEnter: ()=>{ dragRef.current=idx; setOverIdx(idx); },
-          onDragOver:  e=>e.preventDefault(),
-          onDrop:      drop,
-          onDragEnd:   ()=>{ setDragIdx(null); setOverIdx(null); }
-        },
-          h('div', { className:'drag-handle' }, '⠿'),
-          h('div', { className:'rank-badge'+(idx===0?' rank-1':idx===1?' rank-2':idx===2?' rank-3':'') }, idx+1),
-          h('div', { className:'item-text' }, p.text),
-          h('div', { className:'move-btns' },
-            h('button', { className:'move-btn', onClick:()=>move(idx,idx-1), disabled:idx===0 }, '▲'),
-            h('button', { className:'move-btn', onClick:()=>move(idx,idx+1), disabled:idx===ranking.length-1 }, '▼')
+      (() => {
+        const savedVote = data.votes[user];
+        const savedIds  = savedVote ? new Set(savedVote) : new Set();
+        const newItems  = ranking.filter(id => !savedIds.has(id));
+        const hasNew    = newItems.length > 0;
+        return h('div', null,
+          hasNew && h('div', { style:{background:'#FAEEDA',border:'0.5px solid #EF9F27',borderRadius:'var(--radius)',padding:'10px 14px',marginBottom:'1rem',fontSize:'13px',color:'#633806',lineHeight:'1.5'} },
+            h('strong', null, newItems.length + ' new item'+(newItems.length>1?'s':'')+' added since your last vote.'),
+            ' Items marked with a dashed border are new — please save your vote again to include them.'
+          ),
+          !hasNew && h('p', { style:{fontSize:'13px',color:'var(--text2)',marginBottom:'1rem'} },
+            savedVote ? 'Your vote is saved. You can update it anytime.' : 'Drag to reorder or use arrows. #1 is your top priority.'
+          ),
+          ranking.map((id, idx) => {
+            const p = data.priorities.find(x => x.id===id); if (!p) return null;
+            const isNew = !savedIds.has(id);
+            return h('div', {
+              key:id,
+              className:'drag-item'+(overIdx===idx?' over':'')+(isNew?' is-new':''),
+              draggable:true,
+              onDragStart: ()=>setDragIdx(idx),
+              onDragEnter: ()=>{ dragRef.current=idx; setOverIdx(idx); },
+              onDragOver:  e=>e.preventDefault(),
+              onDrop:      drop,
+              onDragEnd:   ()=>{ setDragIdx(null); setOverIdx(null); }
+            },
+              h('div', { className:'drag-handle' }, '⠿'),
+              h('div', { className:'rank-badge'+(idx===0?' rank-1':idx===1?' rank-2':idx===2?' rank-3':'') }, idx+1),
+              h('div', { className:'item-text' }, p.text),
+              isNew && h('span', { className:'new-badge' }, 'new'),
+              h('div', { className:'move-btns' },
+                h('button', { className:'move-btn', onClick:()=>move(idx,idx-1), disabled:idx===0 }, '▲'),
+                h('button', { className:'move-btn', onClick:()=>move(idx,idx+1), disabled:idx===ranking.length-1 }, '▼')
+              )
+            );
+          }),
+          h('div', { className:'save-bar' },
+            h('span', { className:'saved-msg' }, savedMsg),
+            h('button', { className:'primary', onClick:saveVote, disabled:saving },
+              saving ? h('span', { className:'spinner' }) : null,
+              saving ? ' Saving…' : (savedVote ? (hasNew ? 'Save updated vote' : 'Update my vote') : 'Save my vote')
+            )
           )
         );
-      }),
-      h('div', { className:'save-bar' },
-        h('span', { className:'saved-msg' }, savedMsg),
-        h('button', { className:'primary', onClick:saveVote, disabled:saving },
-          saving ? h('span', { className:'spinner' }) : null,
-          saving ? ' Saving…' : (data.votes[user] ? 'Update my vote' : 'Save my vote')
-        )
-      )
+      })()
     ),
 
     /* ── RESULTS ── */
@@ -670,6 +693,25 @@ function App() {
           )
         : h('div', null,
 
+            /* ── Priority list ── */
+            h('p', { className:'section-label' }, 'Priority items'),
+            h('div', { className:'row', style:{marginBottom:'8px'} },
+              h('input', { type:'text', placeholder:'Describe the new priority...', value:newPrio,
+                onChange: e=>setNewPrio(e.target.value),
+                onKeyDown: e=>e.key==='Enter'&&addPrio() }),
+              h('button', { className:'primary', onClick:addPrio, disabled:saving }, 'Add')
+            ),
+            data.priorities.length===0
+              ? h('div', { className:'empty' }, 'No priorities yet.')
+              : data.priorities.map(p => h('div', { key:p.id, className:'list-item' },
+                  h('div', { className:'info' }, h('div', { className:'em' }, p.text)),
+                  h('div', { className:'actions' },
+                    h('button', { className:'danger sm', onClick:()=>removePrio(p.id) }, 'Remove')
+                  )
+                )),
+
+            h('hr', { className:'divider' }),
+
             /* ── Add member ── */
             h('p', { className:'section-label' }, 'Add new member'),
             h('div', { className:'field' },
@@ -707,27 +749,8 @@ function App() {
                     h('button', { className:'danger sm', onClick:()=>removeMember(m.email) }, 'Remove')
                   )
                 )),
-            h('p', { className:'hint' }, 'Green dot = voted · Grey = not yet · Reset pw = change password'),
-
-            h('hr', { className:'divider' }),
-
-            /* ── Priority list ── */
-            h('p', { className:'section-label' }, 'Priority items'),
-            h('div', { className:'row', style:{marginBottom:'8px'} },
-              h('input', { type:'text', placeholder:'Describe the new priority...', value:newPrio,
-                onChange: e=>setNewPrio(e.target.value),
-                onKeyDown: e=>e.key==='Enter'&&addPrio() }),
-              h('button', { className:'primary', onClick:addPrio, disabled:saving }, 'Add')
-            ),
-            data.priorities.length===0
-              ? h('div', { className:'empty' }, 'No priorities yet.')
-              : data.priorities.map(p => h('div', { key:p.id, className:'list-item' },
-                  h('div', { className:'info' }, h('div', { className:'em' }, p.text)),
-                  h('div', { className:'actions' },
-                    h('button', { className:'danger sm', onClick:()=>removePrio(p.id) }, 'Remove')
-                  )
-                ))
-          )
+            h('p', { className:'hint' }, 'Green dot = voted · Grey = not yet · Reset pw = change password')
+        )
     )
   )); /* close .app div + outer div */
 }
